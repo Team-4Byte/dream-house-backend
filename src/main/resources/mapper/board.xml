@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.holmes.model.mapper.BoardMapper">
+
+	<resultMap type="boardDto" id="article">
+		<result column="articleNo" property="articleNo" />
+		<result column="userId" property="userId" />
+		<result column="userName" property="userName" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="hit" property="hit" />
+		<result column="createTime" property="createTime" />
+	</resultMap>
+
+	<sql id="search">
+		<if test="word != null and word != ''">
+			<if test="key == 'title'"> and subject like concat('%', #{word}, '%') </if>
+			<if
+				test="key != 'title'"> and ${key} = #{word} </if>
+		</if>
+	</sql>
+
+	<select id="listArticle" parameterType="map" resultMap="article"> select b.article_no,
+		b.user_id, b.subject, b.content, b.hit, b.register_time, m.user_name from board b, members m
+		where b.user_id = m.user_id <include refid="search"></include> order by b.article_no desc
+		limit #{start}, #{listsize} </select>
+
+	<!-- 게시판 글 수정 -->
+	<update id="modifyArticle" parameterType="boardDto"> update board set title = #{title}, content
+		= #{content} where articleNo = #{articleNo} </update>
+
+	<!-- 게시판 글 작성 -->
+	<insert id="writeArticle" parameterType="boardDto"> insert into board (userId, title, content,
+		hit, createTime) values (#{userId}, #{title}, #{content}, 0, now()) <selectKey
+			resultType="int" keyProperty="articleNo" order="AFTER"> select last_insert_id() </selectKey>
+	</insert>
+
+	<!-- 게시판 글 내용 보기 -->
+	<select id="getArticle" parameterType="int" resultMap="viewArticle"> select b.articleNo,
+		b.userId, b.title, b.content, b.hit, b.createTime from board b, member m where b.userId =
+		m.userId and b.articleNo = #{articleNo} </select>
+
+	<!-- 게시판 글 조회수 증가 -->
+	<update id="updateHit" parameterType="int"> update board set hit = hit + 1 where articleNo =
+		#{articleNo} </update>
+
+	<!-- 게시판 글 삭제 -->
+	<delete id="deleteArticle" parameterType="int"> delete from board where articleNo = #{articleNo} </delete>
+
+	<!-- 게시판 좋아요 개수 얻기 -->
+	<select id="getArticleLikeCount" parameterType="int" resultType="int"> select count(*) from
+		board b join boardlike bl using(articleNo) where bl.articleNo = #{articleNo} </select>
+
+	<!-- 게시판 좋아요 누르기 -->
+	<select id="pressArticleLike" parameterType="int" resultType="int"> select count(*) from board b
+		join boardlike bl using(articleNo) where bl.articleNo = #{articleNo} </select>
+
+	<!-- 해당 유저가 좋아요를 눌렀는지 확인 -->
+	<select id="isPressArticleLike" parameterType="BoardLike" resultType="int"> select count(*) from
+		board b join boardlike bl using(articleNo) where bl.articleNo = #{articleNo} and bl.userId =
+		#{userId} </select>
+
+	<resultMap type="boardDto" id="viewArticle" extends="article">
+		<collection property="fileInfos" column="article_no" javaType="list" ofType="fileInfoDto"
+			select="fileInfoList" />
+	</resultMap>
+
+	<select id="getBySearchArticle" parameterType="map" resultMap="article"> select b.articleNo,
+		b.userId, b.title, b.content, b.hit, b.createTime, m.userName from board b, member m where
+		b.userId = m.userId <include refid="search"></include> order by b.articleNo limit #{start},
+		#{listsize} </select>
+
+
+	<select id="getTotalArticleCount" parameterType="map" resultType="int"> select count(articleNo)
+		from board <where>
+			<include refid="search"></include>
+		</where>
+	</select>
+</mapper>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.holmes.model.mapper.MemberMapper">
+
+	<resultMap type="memberDto" id="member">
+		<result column="userId" property="userId" />
+		<result column="userName" property="userName" />
+		<result column="userPassword" property="userPassword" />
+		<result column="emailId" property="emailId" />
+		<result column="emailDomain" property="emailDomain" />
+		<result column="joinDate" property="joinDate" />
+		<result column="refreshToken" property="refreshToken" />
+		<result column="likeArea" property="likeArea" />
+	</resultMap>
+
+	<select id="login" parameterType="map" resultMap="member"> select * from member where userId =
+		#{userId} and userPassword = #{userPassword} </select>
+
+	<select id="userInfo" parameterType="string" resultMap="member"> select userName, userId,
+		emailId, emailDomain, joinDate from member where userId = #{userId} </select>
+
+	<update id="saveRefreshToken" parameterType="map"> update member set refreshToken =
+		#{refreshToken} where userId = #{userId} </update>
+
+	<select id="getRefreshToken" parameterType="string" resultType="string"> select refreshToken
+		from member where userId = #{userId} </select>
+
+	<update id="deleteRefreshToken" parameterType="map"> update member set refreshToken =
+		#{refreshToken, jdbcType=VARCHAR} where userId = #{userId} </update>
+
+	<insert id="register" parameterType="memberDto"> insert into member(userId, userPassword,
+		userName, emailId, emailDomain, joinDate, refreshToken)
+		values(#{userId},#{userPassword},#{userName},#{emailId},#{emailDomain}, now(),
+		#{refreshToken}) </insert>
+
+	<delete id="delete" parameterType="string"> delete from member where userId=#{userId} </delete>
+
+	<update id="modify" parameterType="memberDto"> update member set userPassword = #{userPassword},
+		userName = #{userName}, emailId=#{emailId}, emailDomain=#{emailDomain} where
+		userId=#{userId} </update>
+
+</mapper>

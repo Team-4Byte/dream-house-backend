@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.holmes.model.mapper.HouseMapper">
+
+	<select id="getHouseInfo" parameterType="int" resultType="houseInfoDto"> select * from houseinfo
+		where aptCode=#{aptCode} </select>
+
+	<resultMap type="houseInfoDto" id="HouseinfoMap">
+		<id column="aptCode" property="aptCode"></id>
+		<result column="aptName" property="aptName"></result>
+		<result column="dongCode" property="dongCode"></result>
+		<result column="dongName" property="dongName"></result>
+		<result column="buildYear" property="buildYear"></result>
+		<result column="jibun" property="jibun"></result>
+		<result column="lat" property="lat"></result>
+		<result column="lng" property="lng"></result>
+	</resultMap>
+
+	<resultMap type="houseDealDto" id="HouseDealWithInfo">
+		<id column="no" property="no"></id>
+		<result column="aptCode" property="aptCode"></result>
+		<result column="dealAmount" property="dealAmount"></result>
+		<result column="dealYear" property="dealYear"></result>
+		<result column="dealMonth" property="dealMonth"></result>
+		<result column="dealDay" property="dealDay"></result>
+		<result column="area" property="area"></result>
+		<result column="floor" property="floor"></result>
+		<association property="dto" resultMap="HouseinfoMap" />
+	</resultMap>
+
+	<select id="getFiveListAptCode" resultType="int"> select aptCode from housedeal group by aptCode
+		order by count(*) desc Limit 3 </select>
+
+	<select id="getFiveListAptName" resultType="HouseInfoDto"> select * from houseinfo where aptCode
+		= #{aptCode} </select>
+
+	<select id="getTradeCount" parameterType="int" resultType="int"> select count(*) from housedeal
+		where aptCode = #{aptCode} </select>
+
+	<select id="getDongCodes" parameterType="string" resultType="DongCodeDto"> select * from
+		dongcode where dongCode like concat(LEFT(#{gugunCode},5),'%') order by dongName </select>
+
+	<select id="getAptList" parameterType="string" resultType="houseInfoDto"> select * from
+		houseinfo where dongCode = #{dongCode}</select>
+
+	<select id="getHouseDealsByDongCode" parameterType="string" resultMap="HouseDealWithInfo">
+		select d.no,d.aptCode,d.dealAmount,d.dealYear,d.dealMonth,d.dealDay,d.area,d.floor,
+		i.aptCode,i.aptName,i.dongCode,i.dongName,i.buildYear,i.jibun,i.lat,i.lng from housedeal d
+		join houseinfo i using(aptCode) where i.dongCode LIKE concat(#{dongCode},'%') </select>
+
+	<select id="getHouseDealsByAptCode" parameterType="int" resultMap="HouseDealWithInfo"> select *
+		from housedeal d join houseinfo i using(aptCode) where aptCode=#{aptCode} </select>
+
+	<insert id="pressAptFavor" parameterType="bookMarkDto"> insert into bookmark values(#{aptCode},
+		#{userId}, now()) </insert>
+
+	<insert id="UnPressAptFavor" parameterType="bookMarkDto"> delete from bookmark where aptCode =
+		#{aptCode} and userId = #{userId} </insert>
+
+	<select id="getHouseInfoByaptName" parameterType="string" resultType="houseInfoDto"> select *
+		from houseinfo where aptName LIKE concat('%', #{aptName}, '%') </select>
+</mapper>
